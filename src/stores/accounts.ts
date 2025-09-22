@@ -21,7 +21,7 @@ export const useAccountsStore = defineStore('accounts', () => {
   }
 
   function addEmpty() {
-    const id = Date.now().toString()
+    const id = Date.now()
     accounts.value.push({
       id,
       labels: [],
@@ -41,7 +41,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     }
   }
 
-  function remove(id: string) {
+  function remove(id: number) {
     accounts.value = accounts.value.filter(a => a.id !== id)
     persist()
   }
@@ -50,3 +50,4 @@ export const useAccountsStore = defineStore('accounts', () => {
 
   return { accounts, addEmpty, update, remove, persist, load }
 })
+
