@@ -600,7 +600,7 @@ vue-tsc@^1.5.0:
     "@vue/language-core" "1.8.27"
     semver "^7.5.4"
 
-vue@^3.3.4:
+vue@3:
   version "3.5.21"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.5.21.tgz#30af9553fd9642870321b7dc547b46c395cb7b91"
   integrity sha512-xxf9rum9KtOdwdRkiApWL+9hZEMWE90FHh8yS1+KJAiWYh+iGWV1FquPjoO9VUHQ+VIhsCXNNyZ5Sf4++RVZBA==
