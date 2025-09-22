@@ -1,0 +1,21 @@
+{
+  "name": "vue-accounts-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "materialize-css": "^1.0.0",
+    "pinia": "^2.0.33",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2",
+    "vite": "^5.0.0",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "vue-tsc": "^1.5.0"
+  }
+}
