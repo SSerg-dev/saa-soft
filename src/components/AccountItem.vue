@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="card account-card">
     <div class="card-content">
       <div class="row valign-wrapper" style="margin-bottom: 0">
@@ -11,7 +11,6 @@
       </div>
 
       <div class="row" style="margin-top: 12px">
-        <!-- Labels -->
         <div class="input-field col s12">
           <input
             :id="`labels-${account.id}`"
@@ -24,7 +23,6 @@
           >
         </div>
 
-        <!-- Type -->
         <div class="input-field col s6">
           <select
             :id="`type-${account.id}`"
@@ -37,7 +35,6 @@
           <label :for="`type-${account.id}`" class="active">Тип</label>
         </div>
 
-        <!-- Login -->
         <div class="input-field col s6">
           <input
             :id="`login-${account.id}`"
@@ -48,7 +45,6 @@
           <label :for="`login-${account.id}`" class="active">Логин</label>
         </div>
 
-        <!-- Password -->
         <div v-if="typeLocal === 'LOCAL'" class="input-field col s12">
           <input
             :id="`password-${account.id}`"
@@ -131,7 +127,7 @@ export default defineComponent({
     const type = ref(props.account.type)
     const login = ref(props.account.login)
     const password = ref(props.account.password ?? '')
-
+    
     function emitUpdate() {
       emit('update', {
         ...props.account,
@@ -141,10 +137,7 @@ export default defineComponent({
         password: type.value === 'LOCAL' ? password.value : null,
       })
     }
-    function remove() {
-      emit('remove', props.account.id)
-    }
-
+    
     function onRemove() {
       emit('remove', Number(props.account.id))
     }
@@ -179,4 +172,208 @@ export default defineComponent({
 .account-card {
   margin-bottom: 20px;
 }
+</style> -->
+
+<!-- ////////////////////////////////////// -->
+ <template>
+  <div class="card account-card">
+    <div class="card-content">
+      <div class="row valign-wrapper" style="margin-bottom: 0">
+        <div class="col s10"><strong>ID:</strong> {{ account.id }}</div>
+        <div class="col s2 right-align">
+          <a class="btn-flat" @click="onRemove">
+            <i class="material-icons red-text">delete</i>
+          </a>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 12px">
+        <!-- Labels -->
+        <div class="input-field col s12">
+          <input
+            :id="`labels-${account.id}`"
+            v-model="labelsRawLocal"
+            @blur="emitUpdate"
+            maxlength="200"
+          />
+          <label :for="`labels-${account.id}`" class="active">
+            Метка (через ;)
+          </label>
+        </div>
+
+        <!-- Type -->
+        <div class="input-field col s6">
+          <select
+            :id="`type-${account.id}`"
+            v-model="typeLocal"
+            @change="emitUpdate"
+          >
+            <option value="LDAP">LDAP</option>
+            <option value="LOCAL">Локальная</option>
+          </select>
+          <label :for="`type-${account.id}`" class="active">Тип</label>
+        </div>
+
+        <!-- Login -->
+        <div class="input-field col s6">
+          <input
+            :id="`login-${account.id}`"
+            v-model="loginLocal"
+            @blur="emitUpdate"
+            maxlength="100"
+            :class="{ 'invalid': errorLogin }"
+          />
+          <label :for="`login-${account.id}`" class="active">Логин</label>
+        </div>
+
+        <!-- Password -->
+        <div v-if="typeLocal === 'LOCAL'" class="input-field col s12">
+          <input
+            :id="`password-${account.id}`"
+            type="password"
+            v-model="passwordLocal"
+            @blur="emitUpdate"
+            maxlength="100"
+            :class="{ 'invalid': errorPassword }"
+          />
+          <label :for="`password-${account.id}`" class="active">Пароль</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, watch, nextTick, onMounted } from 'vue'
+import type { Account } from '../types/account'
+
+export default defineComponent({
+  name: 'AccountItem',
+  props: {
+    account: { type: Object as () => Account, required: true },
+  },
+  emits: ['update', 'remove'],
+  setup(props, { emit }) {
+    // локальные копии данных
+    const labelsRawLocal = ref(
+      props.account.labelsRaw ?? props.account.labels.map(l => l.text).join(';') ?? ''
+    )
+    const typeLocal = ref<Account['type']>(props.account.type ?? 'LDAP')
+    const loginLocal = ref(props.account.login ?? '')
+    const passwordLocal = ref(props.account.password ?? '')
+
+    // ошибки валидации
+    const errorLogin = ref(false)
+    const errorPassword = ref(false)
+
+    // синхронизация при изменении props
+    watch(() => props.account, (newA) => {
+      labelsRawLocal.value = newA.labelsRaw ?? (newA.labels.map(l => l.text).join(';') ?? '')
+      typeLocal.value = newA.type
+      loginLocal.value = newA.login
+      passwordLocal.value = newA.password ?? ''
+    }, { deep: true })
+
+    function labelsFromRaw(raw: string) {
+      return raw
+        .split(';')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(text => ({ text }))
+    }
+
+    function validate() {
+      let valid = true
+      if (!loginLocal.value) {
+        errorLogin.value = true
+        valid = false
+      } else {
+        errorLogin.value = false
+      }
+
+      if (typeLocal.value === 'LOCAL' && !passwordLocal.value) {
+        errorPassword.value = true
+        valid = false
+      } else {
+        errorPassword.value = false
+      }
+
+      return valid
+    }
+
+    function emitUpdate() {
+      if (!validate()) return
+
+      emit('update', {
+        ...props.account,
+        labelsRaw: labelsRawLocal.value,
+        labels: labelsFromRaw(labelsRawLocal.value),
+        type: typeLocal.value,
+        login: loginLocal.value,
+        password: typeLocal.value === 'LOCAL' ? passwordLocal.value : null
+      })
+    }
+
+    function onRemove() {
+      emit('remove', props.account.id)
+    }
+
+    onMounted(() => {
+      // init materialize select
+      nextTick(() => {
+        const el = document.getElementById(`type-${props.account.id}`) as HTMLSelectElement | null
+        if (window.M && el) {
+          // @ts-ignore
+          window.M.FormSelect.init(el)
+        }
+      })
+    })
+
+    return {
+      labelsRawLocal,
+      typeLocal,
+      loginLocal,
+      passwordLocal,
+      errorLogin,
+      errorPassword,
+      emitUpdate,
+      onRemove,
+    }
+  }
+})
+</script>
+
+<style scoped>
+.account-card {
+  margin-bottom: 20px;
+}
+
+/* base style for all inputs */
+input[type="text"],
+input[type="password"] {
+  height: 40px;
+  line-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+/* error state */ 
+input.invalid {
+  border: 1px solid red !important;
+  background-color: #fff5f5; /* light red background */
+
+  height: 40px;
+  line-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+  margin-top: 6px;
+}
+
 </style>
+
